@@ -63,7 +63,7 @@ def ensure_path(path, remove=True):
     basename = os.path.basename(path.rstrip('/'))
     if os.path.exists(path):
         if remove and (basename.startswith('_')
-                or input('{} exists, remove? (y/[n]): '.format(path)) == 'y'):
+                       or input('{} exists, remove? (y/[n]): '.format(path)) == 'y'):
             shutil.rmtree(path)
             os.makedirs(path)
     else:
@@ -109,11 +109,11 @@ def make_coord(shape, ranges=None, flatten=True):
         else:
             v0, v1 = ranges[i]
         r = (v1 - v0) / (2 * n)
-        seq = v0 + r + (2 * r) * torch.arange(n).float()
+        seq = v0 + r + (2 * r) * torch.arange(n).float()  # 得到每个格子中心的坐标范围是[0,h-1]/[0,w-1]
         coord_seqs.append(seq)
     ret = torch.stack(torch.meshgrid(*coord_seqs), dim=-1)
     if flatten:
-        ret = ret.view(-1, ret.shape[-1])
+        ret = ret.view(-1, ret.shape[-1])  # [h*w,2]
     return ret
 
 
@@ -121,8 +121,8 @@ def to_pixel_samples(img):
     """ Convert the image to coord-RGB pairs.
         img: Tensor, (3, H, W)
     """
-    coord = make_coord(img.shape[-2:])
-    rgb = img.view(3, -1).permute(1, 0)
+    coord = make_coord(img.shape[-2:])  # [h*w,2]
+    rgb = img.view(3, -1).permute(1, 0)  # [h*w,3]
     return coord, rgb
 
 

@@ -27,19 +27,19 @@ class SRImplicitPaired(Dataset):
     def __getitem__(self, idx):
         img_lr, img_hr = self.dataset[idx]
 
-        s = img_hr.shape[-2] // img_lr.shape[-2] # assume int scale
+        scale = img_hr.shape[-2] // img_lr.shape[-2]  # assume int scale
         if self.inp_size is None:
             h_lr, w_lr = img_lr.shape[-2:]
-            img_hr = img_hr[:, :h_lr * s, :w_lr * s]
+            img_hr = img_hr[:, :h_lr * scale, :w_lr * scale]
             crop_lr, crop_hr = img_lr, img_hr
         else:
             w_lr = self.inp_size
             x0 = random.randint(0, img_lr.shape[-2] - w_lr)
             y0 = random.randint(0, img_lr.shape[-1] - w_lr)
             crop_lr = img_lr[:, x0: x0 + w_lr, y0: y0 + w_lr]
-            w_hr = w_lr * s
-            x1 = x0 * s
-            y1 = y0 * s
+            w_hr = w_lr * scale
+            x1 = x0 * scale
+            y1 = y0 * scale
             crop_hr = img_hr[:, x1: x1 + w_hr, y1: y1 + w_hr]
 
         if self.augment:
@@ -109,7 +109,7 @@ class SRImplicitDownsampled(Dataset):
         if self.inp_size is None:
             h_lr = math.floor(img.shape[-2] / s + 1e-9)
             w_lr = math.floor(img.shape[-1] / s + 1e-9)
-            img = img[:, :round(h_lr * s), :round(w_lr * s)] # assume round int
+            img = img[:, :round(h_lr * s), :round(w_lr * s)]  # assume round int
             img_down = resize_fn(img, (h_lr, w_lr))
             crop_lr, crop_hr = img_down, img
         else:
@@ -146,8 +146,8 @@ class SRImplicitDownsampled(Dataset):
             hr_rgb = hr_rgb[sample_lst]
 
         cell = torch.ones_like(hr_coord)
-        cell[:, 0] *= 2 / crop_hr.shape[-2]
-        cell[:, 1] *= 2 / crop_hr.shape[-1]
+        cell[:, 0] *= 2 / crop_hr.shape[-2]  # 缩放到-1，1时一个格子的尺寸w'
+        cell[:, 1] *= 2 / crop_hr.shape[-1]  # 缩放到-1，1时一个格子的尺寸h'
 
         return {
             'inp': crop_lr,
